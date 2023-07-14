@@ -57,7 +57,7 @@ while True:
         print(f'Received message: {value}')
 
         # Insert the message into Hive table
-        query = f"INSERT INTO {hive_table} (message) VALUES ({value})"
+        query = f"INSERT INTO {hive_table} (name,age,company) VALUES ({value})"
         hive_cursor.execute(query)
         hive_connection.commit()
         print(f"Inserted message into Hive: {value}")
