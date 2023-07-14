@@ -1,19 +1,21 @@
 # from kafka import KafkaClient, KafkaProducer, KafkaConsumer
+import puretransport
 from pyhive import hive
 from confluent_kafka import Consumer
+# from thrift_sasl import Client
 
 # Kafka consumer configuration
 kafka_bootstrap_servers = 'localhost:9094'
-kafka_topic = 'your_topic_name'
-kafka_group_id = 'your_group_id'
+kafka_topic = 'OfficeEmployee'
+kafka_group_id = 'hive-yudi'
 
 # Hive connection configuration
 hive_host = 'localhost'
 hive_port = 10000
-hive_username = 'your_hive_username'
-hive_password = 'your_hive_password'
-hive_database = 'your_hive_database'
-hive_table = 'your_hive_table'
+hive_username = 'prsdhatama'
+hive_password = 'prsdhatama'
+hive_database = 'default'
+hive_table = 'office_employee'
 
 # Connect to Kafka consumer
 consumer_config = {
@@ -23,13 +25,21 @@ consumer_config = {
 consumer = Consumer(consumer_config)
 consumer.subscribe([kafka_topic])
 
+# Transport
+transport = puretransport.transport_factory(host=hive_host,
+                                            port=hive_port,
+                                            username=hive_username,
+                                            password=hive_password)
+
 # Connect to Hive
 hive_connection = hive.connect(
-    host=hive_host,
-    port=hive_port,
+    # host=hive_host,
+    # port=hive_port,
+    # auth='CUSTOM',
     username=hive_username,
-    password=hive_password,
-    database=hive_database
+    # password=hive_password,
+    database=hive_database,
+    thrift_transport=transport
 )
 hive_cursor = hive_connection.cursor()
 
@@ -44,12 +54,13 @@ while True:
             continue
 
         value = message.value().decode('utf-8')
+        print(f'Received message: {value}')
 
         # Insert the message into Hive table
-        query = f"INSERT INTO {hive_table} (message) VALUES ('{value}')"
+        query = f"INSERT INTO {hive_table} (message) VALUES ({value})"
         hive_cursor.execute(query)
         hive_connection.commit()
         print(f"Inserted message into Hive: {value}")
 
-consumer.close()
-hive_connection.close()
+# consumer.close()
+# hive_connection.close()
