@@ -1,4 +1,3 @@
-# from kafka import KafkaClient, KafkaProducer, KafkaConsumer
 import puretransport
 from pyhive import hive
 from confluent_kafka import Consumer
