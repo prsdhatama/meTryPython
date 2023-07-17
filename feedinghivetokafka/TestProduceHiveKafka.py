@@ -38,6 +38,16 @@ hive_connection = hive.connect(
 )
 hive_cursor = hive_connection.cursor()
 
+# Retrieve data from Hive and produce messages to Kafka (All Row)
+# query = f"SELECT name, age, company FROM {hive_table}"
+# hive_cursor.execute(query)
+# rows = hive_cursor.fetchall()
+# message = '\n'.join([f"Name: {name}, Age: {age}, Company: {company}" for name, age, company in rows])
+# producer.produce(kafka_topic, value=message)
+# producer.flush()
+# print(f"Produced message to Kafka:\n{message}")
+
+
 # Retrieve data from Hive and produce messages to Kafka
 query = f"SELECT name, age, company FROM {hive_table}"
 hive_cursor.execute(query)
