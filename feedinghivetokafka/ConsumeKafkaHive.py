@@ -1,7 +1,7 @@
 import puretransport
 from pyhive import hive
 from confluent_kafka import Consumer
-# from thrift_sasl import Client
+
 
 # Kafka consumer configuration
 kafka_bootstrap_servers = 'localhost:9094'
