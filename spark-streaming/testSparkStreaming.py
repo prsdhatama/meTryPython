@@ -5,6 +5,8 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 
 import warnings
+import requests
+
 # Suppress the warning messages
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
