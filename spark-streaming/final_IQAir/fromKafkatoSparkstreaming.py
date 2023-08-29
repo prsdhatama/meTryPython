@@ -13,9 +13,12 @@ kafka_topic = "AirQuality"
 spark_version = '3.4.0'
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:{},org.apache.spark:spark-sql-kafka-0-10_2.12:{} pyspark-shell'.format(spark_version,spark_version)
 
-# Define environment for Spark and Hadoop
-os.environ['SPARK_HOME'] = r'D:\python\env\spark\spark-3.4.0-bin-hadoop3'
-os.environ['HADOOP_HOME'] = r'D:\python\env\hadoop'
+# os.environ['SPARK_HOME'] = r'D:\python\env\spark\spark-3.4.0-bin-hadoop3'
+# os.environ['HADOOP_HOME'] = r'D:\python\env\hadoop'
+
+os.environ['SPARK_HOME'] = '/mnt/d/python/env/spark/spark-3.4.0-bin-hadoop3'
+os.environ['HADOOP_HOME'] = '/mnt/d/python/env/hadoop'
+
 # Create a Spark session
 spark = SparkSession.builder.appName("AirQualityConsumer").getOrCreate()
 
@@ -24,7 +27,7 @@ print("Spark version:", spark.version)
 # Configure Kafka connection parameters
 kafka_conf = {
     'bootstrap.servers': kafka_bootstrap_servers,
-    'group.id': 'spar_streaming_consuemr',
+    'group.id': 'spar_streaming_consumer',
     'auto.offset.reset': 'earliest'
 }
 # Initialize Kafka consumer
@@ -39,11 +42,21 @@ df = spark \
     .load()
 
 # Process the Kafka data and print to the console
+# query = df \
+#     .writeStream \
+#     .outputMode("append") \
+#     .format("console") \
+#     .start()
+
+def get_value(df):
+    return df["value"]
+
 query = df \
-    .writeStream \
-    .outputMode("append") \
-    .format("console") \
-    .start()
+    .select(get_value(df) \
+    .cast(StringType())) \
+    .writeStream.outputMode("append") \
+    .format("console").start()
+# df.select(col("value").cast(StringType())).writeStream.outputMode("append").format("console").start()
 
 # Wait for the query to terminate
 query.awaitTermination()
