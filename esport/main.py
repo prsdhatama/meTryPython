@@ -54,10 +54,10 @@ if __name__ == '__main__':
     bearer_token = os.environ.get("MY_AUTHORIZATION_HEADER")
     url_to_fetch = f"{base_url}/dota2/teams"
 
-    # data_processor = JsonDataProcessor(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
-    # data_processor.run(url_to_fetch)
+    data_processor = JsonDataProcessor(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
+    data_processor.run(url_to_fetch)
 
-    kafka_consumer = ParseKafkaData(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
-    kafka_consumer.consume(keys_to_extract=["id", "name", "acronym", "location"], consumer_group="esport_consumer_group")
+    # kafka_consumer = ParseKafkaData(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
+    # kafka_consumer.consume(keys_to_extract=["id", "name", "acronym", "location"], consumer_group="esport_consumer_group")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
