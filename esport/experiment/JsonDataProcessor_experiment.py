@@ -1,9 +1,6 @@
 import requests
 import warnings
-from dotenv import load_dotenv
 from confluent_kafka import Producer
-import os
-import json
 import fastavro
 import io
 
@@ -53,6 +50,7 @@ class JsonDataProcessor:
                 print(f"Error fetching data from page {page_number}: {response.status_code}")
                 break
 
+        return self.data_array
     def produce_to_kafka(self):
 
         try:
@@ -70,7 +68,7 @@ class JsonDataProcessor:
             print(f"Error producing to Kafka: {str(e)}")
             return False  # Failed Kafka produce
 
-    def run(self, url):
+    def api_to_kafka(self, url: object) -> object:
         try:
             self.fetch_url(url)
             success = self.produce_to_kafka()

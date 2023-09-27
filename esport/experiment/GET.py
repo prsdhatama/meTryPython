@@ -81,3 +81,4 @@ parse_dota2_team_json(dota2_teams_array)
 # print(dota2_teams_array)
 # producer.produce(kafka_topic, key=None, value=processed_data, callback=delivery_report)
 # producer.flush()
+
