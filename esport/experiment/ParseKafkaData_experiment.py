@@ -10,7 +10,7 @@ class ParseKafkaData(JsonDataProcessor):
     def __init__(self, base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema, accept="application/json"):
         super().__init__(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema, accept)
 
-    def consume(self, consumer_group, offset_reset="latest", keys_to_extract=None):
+    def consume(self, consumer_group, offset_reset="earliest", keys_to_extract=None):
 
         consumer_config = {
             'bootstrap.servers': self.kafka_bootstrap_servers,
@@ -39,6 +39,7 @@ class ParseKafkaData(JsonDataProcessor):
                     avro_bytes_io = io.BytesIO(avro_data)
                     avro_reader = fastavro.reader(avro_bytes_io, self.avro_schema)
                     json_data_list = list(avro_reader)
+                    # "Message is Exist"
 
                     if keys_to_extract is not None:
                         row_list = []

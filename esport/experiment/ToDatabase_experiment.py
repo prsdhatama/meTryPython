@@ -25,6 +25,7 @@ class Database:
             return None
 
     def insert_data_into_database(self, data, columns, schema_name, table_name):
+        values = []
         try:
             # Connect to the database
             connection = self.connect_to_database()
@@ -40,6 +41,13 @@ class Database:
                 update_assignments = [f"{col} = excluded.{col}" for col in columns]
                 update_clause = ", ".join(update_assignments)
                 # Create the SQL query
+                create_table_query = f"""
+                        CREATE TABLE IF NOT EXISTS {table_name} (
+                        id INT PRIMARY KEY,
+                        team_name VARCHAR(50) NOT NULL,
+                        alias VARCHAR(50),
+                        country VARCHAR(50));
+                        """
                 query = f"""
                     INSERT INTO {table_name} ({column_names})
                     VALUES ({placeholders})
@@ -47,13 +55,18 @@ class Database:
                     DO UPDATE SET
                     {update_clause};
                     """
-                values = [tuple(row[key] for key in row.keys()) for row in data]
+
+                if data:
+                    values = [tuple(row[key] for key in row.keys()) for row in data]
+                else:
+                    print("No data to insert into the database.")
 
                 def replace_empty_with_none(x):
                     return [(item if item != '' else None) for item in x]
 
                 no_more_emptystring = [replace_empty_with_none(row) for row in values]
 
+                cursor.execute(create_table_query)
                 cursor.executemany(query, no_more_emptystring)
                 connection.commit()
                 cursor.close()

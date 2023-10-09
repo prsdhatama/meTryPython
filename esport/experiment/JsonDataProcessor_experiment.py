@@ -3,6 +3,7 @@ import warnings
 from confluent_kafka import Producer
 import fastavro
 import io
+import time
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -28,27 +29,44 @@ class JsonDataProcessor:
         self.avro_schema = avro_schema
         self.data_array = []
 
-    def fetch_url(self, url, page_number=1):
+    def fetch_url(self, url, page_number=1, max_retries=5):
+        retries = 0  # Initialize the retry count
+        while retries < max_retries:
+            try:
+                page_url = f"{url}/?page[number]={page_number}"
+                response = requests.get(page_url, headers=self.headers)
 
-        while True:
-            page_url = f"{url}/?page[number]={page_number}"
-            response = requests.get(page_url, headers=self.headers)
+                if response.status_code == 200:
+                    page_data = response.json()
 
-            if response.status_code == 200:
-                page_data = response.json()
+                    if not page_data:
+                        break
 
-                if not page_data:
+                    self.data_array.extend(page_data)
+                    print(f"Fetched data from page {page_number}")
+                    print(page_url)
+                    print(response.json())
+                    page_number += 1
+
+                else:
+                    print(f"Error fetching data from page {page_number}: {response.status_code}")
+                    retries += 1
+                    if retries < max_retries:
+                        print(f"Retrying in 5 seconds...")
+                        time.sleep(5)
+                    else:
+                        print("Max retries reached. Exiting.")
+                        break
+            except Exception as e:
+                print(f"Error during fetch: {str(e)}")
+                # Increment the retry count and add a delay before retrying
+                retries += 1
+                if retries < max_retries:
+                    print(f"Retrying in 5 seconds...")
+                    time.sleep(5)
+                else:
+                    print("Max retries reached. Exiting.")
                     break
-
-                self.data_array.extend(page_data)
-                print(f"Fetched data from page {page_number}")
-                print(page_url)
-                print(response.json())
-                page_number += 1
-
-            else:
-                print(f"Error fetching data from page {page_number}: {response.status_code}")
-                break
 
         return self.data_array
     def produce_to_kafka(self):

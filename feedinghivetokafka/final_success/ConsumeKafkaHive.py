@@ -44,9 +44,13 @@ hive_cursor = hive_connection.cursor()
 
 # Consume messages from Kafka and insert into Hive table
 while True:
+    # sanji = consumer.poll(2.0)
+    # print(sanji)
     messages = consumer.consume(num_messages=10, timeout=1.0)
     for message in messages:
+        print(message)
         if message is None:
+            print("Message is none")
             continue
         if message.error():
             print(f"Error consuming message: {message.error()}")
