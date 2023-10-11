@@ -37,6 +37,7 @@ class Database:
                 cursor.execute(query_set_schema)
 
                 column_names = ', '.join(columns)
+                # %s called as placeholders, where the 2nd params of executemany filled in
                 placeholders = ', '.join(['%s'] * len(columns))
                 update_assignments = [f"{col} = excluded.{col}" for col in columns]
                 update_clause = ", ".join(update_assignments)
@@ -58,6 +59,7 @@ class Database:
 
                 if data:
                     values = [tuple(row[key] for key in row.keys()) for row in data]
+                    print(values[9])
                 else:
                     print("No data to insert into the database.")
 

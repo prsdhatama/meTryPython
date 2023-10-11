@@ -1,3 +1,5 @@
+import json
+
 import requests
 import warnings
 from confluent_kafka import Producer
@@ -31,6 +33,7 @@ class JsonDataProcessor:
 
     def fetch_url(self, url, page_number=1, max_retries=5):
         retries = 0  # Initialize the retry count
+        self.data_array = []
         while retries < max_retries:
             try:
                 page_url = f"{url}/?page[number]={page_number}"
@@ -52,8 +55,8 @@ class JsonDataProcessor:
                     print(f"Error fetching data from page {page_number}: {response.status_code}")
                     retries += 1
                     if retries < max_retries:
-                        print(f"Retrying in 5 seconds...")
-                        time.sleep(5)
+                        print(f"Retrying in 30 seconds...")
+                        time.sleep(30)
                     else:
                         print("Max retries reached. Exiting.")
                         break
@@ -62,23 +65,46 @@ class JsonDataProcessor:
                 # Increment the retry count and add a delay before retrying
                 retries += 1
                 if retries < max_retries:
-                    print(f"Retrying in 5 seconds...")
-                    time.sleep(5)
+                    print(f"Retrying in 30 seconds...")
+                    time.sleep(30)
                 else:
                     print("Max retries reached. Exiting.")
                     break
 
         return self.data_array
-    def produce_to_kafka(self):
-
+    def produce_individual_records_to_kafka(self):
+        # below is previous code for pushing the record as a bunch of row
+        # try:
+        #     # Check if self.data_array is empty or not in the expected format
+        #     if not self.data_array or not isinstance(self.data_array, list):
+        #         print("Data is empty or not in the expected format.")
+        #         return False  # Failed Kafka produce
+        #
+        #     # Serialize the data to Avro format
+        #     avro_bytes_io = io.BytesIO()
+        #     fastavro.writer(avro_bytes_io, self.avro_schema, self.data_array)
+        #     avro_bytes = avro_bytes_io.getvalue()
+        #
+        #     # Produce the Avro data to Kafka
+        #     self.producer.produce(self.kafka_topic, value=avro_bytes)
+        #     self.producer.flush()
+        #     return True  # Successful Kafka produce
         try:
-            # Serialize the data to Avro format
-            avro_bytes_io = io.BytesIO()
-            fastavro.writer(avro_bytes_io, self.avro_schema, self.data_array)
-            avro_bytes = avro_bytes_io.getvalue()
+            # Check if self.data_array is empty or not in the expected format
+            if not self.data_array or not isinstance(self.data_array, list):
+                print("Data is empty or not in the expected format.")
+                return False  # Failed Kafka produce
 
-            # Produce the Avro data to Kafka
-            self.producer.produce(self.kafka_topic, value=avro_bytes)
+            for record in self.data_array:
+                # Produce each JSON record to Kafka
+                record_list = [record]
+                avro_bytes_io = io.BytesIO()
+                fastavro.writer(avro_bytes_io, self.avro_schema, record_list)
+                avro_bytes = avro_bytes_io.getvalue()
+                # record_json = json.dumps(record)
+                self.producer.produce(self.kafka_topic, value=avro_bytes)
+                # self.producer.flush()
+                print (f"Succesfully produce the message to topic {self.kafka_topic} with message {record}")
             self.producer.flush()
             return True  # Successful Kafka produce
 
@@ -86,10 +112,12 @@ class JsonDataProcessor:
             print(f"Error producing to Kafka: {str(e)}")
             return False  # Failed Kafka produce
 
-    def api_to_kafka(self, url: object) -> object:
+    def api_to_kafka(self, url: str) -> object:
         try:
             self.fetch_url(url)
-            success = self.produce_to_kafka()
+            success = self.produce_individual_records_to_kafka()
+
+            time.sleep(1)
             return success  # Return True if the process was successful
 
         except Exception as e:
