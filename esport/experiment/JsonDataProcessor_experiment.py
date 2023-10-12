@@ -97,10 +97,12 @@ class JsonDataProcessor:
 
             for record in self.data_array:
                 # Produce each JSON record to Kafka
+                ### If using Avro uncomment code below
                 record_list = [record]
                 avro_bytes_io = io.BytesIO()
                 fastavro.writer(avro_bytes_io, self.avro_schema, record_list)
                 avro_bytes = avro_bytes_io.getvalue()
+                ###
                 # record_json = json.dumps(record)
                 self.producer.produce(self.kafka_topic, value=avro_bytes)
                 # self.producer.flush()

@@ -49,17 +49,19 @@ class Database:
                         alias VARCHAR(50),
                         country VARCHAR(50));
                         """
+                truncate = f"""
+                        TRUNCATE TABLE {table_name};
+                        """
                 query = f"""
-                    INSERT INTO {table_name} ({column_names})
-                    VALUES ({placeholders})
-                    ON CONFLICT (id)
-                    DO UPDATE SET
-                    {update_clause};
-                    """
+                        INSERT INTO {table_name} ({column_names})
+                        VALUES ({placeholders})
+                        ON CONFLICT (id)
+                        DO UPDATE SET
+                        {update_clause};
+                        """
 
                 if data:
                     values = [tuple(row[key] for key in row.keys()) for row in data]
-                    print(values[9])
                 else:
                     print("No data to insert into the database.")
 
@@ -67,7 +69,7 @@ class Database:
                     return [(item if item != '' else None) for item in x]
 
                 no_more_emptystring = [replace_empty_with_none(row) for row in values]
-
+                # cursor.execute(truncate)
                 cursor.execute(create_table_query)
                 cursor.executemany(query, no_more_emptystring)
                 connection.commit()

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from experiment.JsonDataProcessor_experiment import JsonDataProcessor
 from experiment.ParseKafkaData_experiment import ParseKafkaData
 from experiment.ToDatabase_experiment import Database
+from confluent_kafka import Consumer
 
 if __name__ == '__main__':
 
@@ -17,9 +18,6 @@ if __name__ == '__main__':
             "codmw",
             "valorant",
             "kog",
-            # "dota2"
-            # "fifa",
-            # "lol",
             "ow",
             "pubg",
             "r6siege",
@@ -77,16 +75,27 @@ if __name__ == '__main__':
         db_name = "airflow"
         db_user = "airflow"
         db_password = "airflow"
+
         #
+        # consumer_config = {
+        #     'bootstrap.servers': "localhost:9094",
+        #     'group.id': "esport_consumer_group",
+        #     'auto.offset.reset': "latest"  # You can adjust this based on your requirements.
+        # }
+        # consumer = Consumer(consumer_config)
+        # # Subscribe to the Kafka topic
+        # consumer.subscribe(["esport_teams"])
+        # print("Start consume topic esport_teams in Main")
+
         data_processor = JsonDataProcessor(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
         data_fetcher = data_processor.api_to_kafka(url_to_fetch)
 
         kafka_consumer = ParseKafkaData(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
         parsed_data = kafka_consumer.consume(keys_to_extract=["id", "name", "acronym", "location"],consumer_group="esport_consumer_group")
-
-        # db_connector = Database(db_host, db_port, db_name, db_user, db_password)
-        # connection = db_connector.connect_to_database()
         #
-        # insert_processor = db_connector.insert_data_into_database(data=parsed_data, columns=["id","team_name","alias","country"],
-        #                                                           schema_name="esport", table_name=f"{game_name}_{segment}")
+        db_connector = Database(db_host, db_port, db_name, db_user, db_password)
+        connection = db_connector.connect_to_database()
+        #
+        insert_processor = db_connector.insert_data_into_database(data=parsed_data, columns=["id","team_name","alias","country"],
+                                                                  schema_name="esport", table_name=f"{game_name}_{segment}")
 

@@ -1,3 +1,6 @@
+import json
+import time
+
 from JsonDataProcessor_experiment import JsonDataProcessor
 from confluent_kafka import Consumer, KafkaError, TopicPartition
 from flatten_json import flatten
@@ -11,6 +14,7 @@ class ParseKafkaData(JsonDataProcessor):
         super().__init__(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema, accept)
 
     def consume(self, consumer_group, offset_reset="earliest", keys_to_extract=None):
+        max_consecutive_none = 5
 
         consumer_config = {
             'bootstrap.servers': self.kafka_bootstrap_servers,
@@ -22,36 +26,53 @@ class ParseKafkaData(JsonDataProcessor):
         consumer.subscribe([self.kafka_topic])
         print(f"Start consume topic {self.kafka_topic}")
 
+        messages = []
+        consecutive_none_count = 0
+        # last_message_time = time.time()
         while True:
             try:
                 message = consumer.poll(2.0)
-                # If data is empty -> continue
                 if message is None:
+                    # last_message_time = time.time()
+                    consecutive_none_count += 1
+                    print(f"No message for {consecutive_none_count * 2}s")
+                    if consecutive_none_count >= max_consecutive_none:
+                        break  # Exit the loop after hitting max_consecutive_none consecutive None messages
                     continue
-                if message.error():
+                else:
+                    consecutive_none_count = 0
+                # If data is empty -> continue
+                if message and message.error():
                     if message.error().code() == KafkaError.PARTITION_EOF:
                         # End of partition event
                         print(f"Reached end of partition {message.partition()}")
                     else:
                         print(f"Error while consuming message: {message.error()}")
                 else:
+
+                    # Uncomment code below if using avro
                     avro_data = message.value()
                     avro_bytes_io = io.BytesIO(avro_data)
                     avro_reader = fastavro.reader(avro_bytes_io, self.avro_schema)
+                    ###
+                    # Uncomment code below if using json
+                    # avro_data = message.value()
+                    # Parse the Avro data as JSON directly
+                    # json_data = json.loads(avro_data)
+                    ###
 
                     if keys_to_extract is not None:
-                        messages=[]
                         for avro_record in avro_reader:
                             extracted_data = self.parse_json_flatten(avro_record, keys_to_extract)
                             messages.append(extracted_data)
                             # Do something with the extracted data, e.g., store it in a database or process it further.
                             print(f"Extracted data: {extracted_data}")
                         # Exit the consumer loop
-                        return messages
             except KeyboardInterrupt:
                 break
         print(f"Consume topic {self.kafka_topic} ended")
         consumer.close()
+        return messages
 
 
     def parse_json(self, json_data, keys_to_extract):
