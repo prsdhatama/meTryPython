@@ -13,7 +13,7 @@ class ParseKafkaData(JsonDataProcessor):
     def __init__(self, base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema, accept="application/json"):
         super().__init__(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema, accept)
 
-    def consume(self, consumer_group, offset_reset="earliest", keys_to_extract=None):
+    def consume(self, consumer_group, offset_reset="latest", keys_to_extract=None):
         max_consecutive_none = 5
 
         consumer_config = {

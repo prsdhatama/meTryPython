@@ -33,8 +33,8 @@ class Database:
                 # Create a cursor for database operations
                 cursor = connection.cursor()
                 # Set schema on database(PostgreSQL)
-                query_set_schema = f"""SET search_path TO {schema_name};"""
-                cursor.execute(query_set_schema)
+                # query_set_schema = f"""SET search_path TO {schema_name};"""
+                # cursor.execute(query_set_schema)
 
                 column_names = ', '.join(columns)
                 # %s called as placeholders, where the 2nd params of executemany filled in

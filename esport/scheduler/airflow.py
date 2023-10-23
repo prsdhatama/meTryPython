@@ -3,39 +3,60 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
 import os
 
-# Your custom Python functions
-from my_custom_operators import FetchDataOperator, ParseDataOperator, InsertDataOperator
+def run_processing(game):
+    # Your processing code here
+    # Make sure to use the game parameter to differentiate each iteration
 
+    # Example: Put your code here
+    # ...
+    pass
+
+# Define your default arguments, schedule interval, etc.
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2023, 10, 10),
-    'retries': 1,
+    'owner': 'your_owner',
+    'start_date': datetime(2023, 10, 12),
+    'retries': 1,  # Set the number of retries
+    'retry_delay': timedelta(minutes=5),  # Set the retry delay
 }
 
+# Create a DAG
 dag = DAG(
-    'my_data_workflow',
+    'your_dag_id',
     default_args=default_args,
     schedule_interval=None,  # Set your desired schedule interval
-    catchup=False,
+    catchup=False,  # Prevent backfilling
 )
 
-# Define your custom operators
-fetch_data = FetchDataOperator(
-    task_id='fetch_data_task',
-    game='csgo',
-    dag=dag,
-)
+# List of games
+games = [
+    "codmw",
+    "valorant",
+    "kog",
+    "ow",
+    "pubg",
+    "r6siege",
+    "rl",
+    "csgo",
+    "dota2",
+    "fifa",
+    "lol"
+]
 
-parse_data = ParseDataOperator(
-    task_id='parse_data_task',
-    dag=dag,
-)
+# Define a PythonOperator for each game
+for game in games:
+    task_id = f'process_{game}'
+    task = PythonOperator(
+        task_id=task_id,
+        python_callable=run_processing,
+        op_args=[game],
+        provide_context=True,
+        dag=dag,
+    )
 
-insert_data = InsertDataOperator(
-    task_id='insert_data_task',
-    dag=dag,
-)
+    # Set up task dependencies
+    if game != games[0]:
+        # Set the dependencies, so each game task waits for the previous one to finish
+        dag.set_upstream(task_id, f'process_{games[games.index(game) - 1]}')
 
-# Define task dependencies
-fetch_data >> parse_data >> insert_data
+if __name__ == "__main__":
+    dag.cli()

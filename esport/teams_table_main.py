@@ -72,20 +72,9 @@ if __name__ == '__main__':
         # DB configuration
         db_host = "localhost"
         db_port = "5432"
-        db_name = "airflow"
+        db_name = "esport"
         db_user = "airflow"
         db_password = "airflow"
-
-        #
-        # consumer_config = {
-        #     'bootstrap.servers': "localhost:9094",
-        #     'group.id': "esport_consumer_group",
-        #     'auto.offset.reset': "latest"  # You can adjust this based on your requirements.
-        # }
-        # consumer = Consumer(consumer_config)
-        # # Subscribe to the Kafka topic
-        # consumer.subscribe(["esport_teams"])
-        # print("Start consume topic esport_teams in Main")
 
         data_processor = JsonDataProcessor(base_url, kafka_bootstrap_servers, kafka_topic, bearer_token, avro_schema)
         data_fetcher = data_processor.api_to_kafka(url_to_fetch)
