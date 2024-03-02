@@ -7,6 +7,7 @@ from flatten_json import flatten
 import fastavro
 import io
 import warnings
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 class ParseKafkaData(JsonDataProcessor):
 

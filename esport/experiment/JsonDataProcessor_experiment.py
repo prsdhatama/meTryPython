@@ -1,5 +1,4 @@
 import json
-
 import requests
 import warnings
 from confluent_kafka import Producer

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/airflow-hive.iml" filepath="$PROJECT_DIR$/.idea/airflow-hive.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/csvpushtokafka.iml" filepath="$PROJECT_DIR$/.idea/csvpushtokafka.iml" />
     </modules>
   </component>
 </project>
